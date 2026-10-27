@@ -19,6 +19,12 @@ public class MaterialEscolarService {
         return repository.saveAndFlush(materialEscolar);
     }
 
+    public MaterialEscolar buscarPorId(Long id) {
+        return repository.findById(id).orElseThrow(
+                () -> new RuntimeException("Material escolar não encontrado com o id: " + id)
+        );
+    }
+
     public MaterialEscolar buscarPorNome(String nome) {
         return repository.findByNome(nome).orElseThrow(
                 () -> new RuntimeException("Material escolar não encontrado com o nome: " + nome)
@@ -30,22 +36,38 @@ public class MaterialEscolarService {
     }
 
     public void deletarPorId(Long id) {
+        if (!repository.existsById(id)) {
+            throw new RuntimeException("Material não encontrado com o id: " + id);
+        }
         repository.deleteById(id);
+    }
+
+    // Método adicionado para realizar a exclusão filtrando pelo nome
+    public void deletarPorNome(String nome) {
+        MaterialEscolar material = repository.findByNome(nome).orElseThrow(
+                () -> new RuntimeException("Material escolar não encontrado com o nome: " + nome)
+        );
+        repository.delete(material);
     }
 
     public MaterialEscolar atualizarMaterialPorId(Long id, MaterialEscolar material) {
         MaterialEscolar materialEntity = repository.findById(id).orElseThrow(() ->
-                new RuntimeException("Material não encontrado")
+                new RuntimeException("Material não encontrado com o id: " + id)
         );
 
-        MaterialEscolar materialAtualizado = MaterialEscolar.builder()
-                .id(materialEntity.getId())
-                .nome(material.getNome() != null ? material.getNome() : materialEntity.getNome())
-                .quantidade(material.getQuantidade() != null ? material.getQuantidade() : materialEntity.getQuantidade())
-                .preco(material.getPreco() != null ? material.getPreco() : materialEntity.getPreco())
-                .fornecedor(material.getFornecedor() != null ? material.getFornecedor() : materialEntity.getFornecedor())
-                .build();
+        if (material.getNome() != null) {
+            materialEntity.setNome(material.getNome());
+        }
+        if (material.getQuantidade() != null) {
+            materialEntity.setQuantidade(material.getQuantidade());
+        }
+        if (material.getPreco() != null) {
+            materialEntity.setPreco(material.getPreco());
+        }
+        if (material.getFornecedor() != null) {
+            materialEntity.setFornecedor(material.getFornecedor());
+        }
 
-        return repository.saveAndFlush(materialAtualizado);
+        return repository.saveAndFlush(materialEntity);
     }
 }
